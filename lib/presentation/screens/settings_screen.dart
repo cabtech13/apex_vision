@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
+import 'package:hive/hive.dart';
 import 'package:iptv_magik_app/core/constants/app_colors.dart';
 import 'package:iptv_magik_app/presentation/widgets/focus_border.dart';
 import 'package:iptv_magik_app/presentation/screens/playlist_manager_screen.dart';
@@ -60,9 +61,32 @@ class SettingsScreen extends StatelessWidget {
                   context,
                   icon: Icons.lock_outline,
                   title: "Mode Verrouillage",
-                  subtitle: "Restreindre l'accès à une seule chaîne",
-                  onTap: () {
-                    // TODO: Implement Lock Mode
+                  subtitle:
+                      Hive.box(
+                            'settings',
+                          ).get('single_channel_mode', defaultValue: false)
+                          ? "Activé (Restreint à une seule chaîne)"
+                          : "Désactivé",
+                  onTap: () async {
+                    final box = Hive.box('settings');
+                    final current = box.get(
+                      'single_channel_mode',
+                      defaultValue: false,
+                    );
+                    await box.put('single_channel_mode', !current);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            !current
+                                ? "Mode Verrouillage activé"
+                                : "Mode Verrouillage désactivé",
+                          ),
+                        ),
+                      );
+                      // Force rebuild
+                      (context as Element).markNeedsBuild();
+                    }
                   },
                 ),
                 _buildSettingsTile(

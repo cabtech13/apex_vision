@@ -50,6 +50,18 @@ class _PlayerScreenState extends State<PlayerScreen> {
           child: CircularProgressIndicator(color: AppColors.accentBlue),
         ),
         autoInitialize: true,
+        allowMuting: true,
+        allowPlaybackSpeedChanging: false,
+        showControlsOnInitialize: true,
+        additionalOptions: (context) {
+          return <OptionItem>[
+            OptionItem(
+              onTap: (context) => debugPrint('Options Audio/Subs'),
+              iconData: Icons.settings,
+              title: 'Audio & Sous-titres',
+            ),
+          ];
+        },
       );
 
       if (mounted) {

@@ -6,6 +6,9 @@ class ApiConstants {
   static const String tmdbPosterSize = 'w500';
   static const String tmdbBackdropSize = 'original';
 
+  // REMPLACER PAR VOTRE CLÉ API TMDB
+  static const String tmdbApiKey = '';
+
   // Remote Config (à remplacer par votre endpoint)
   static const String remoteConfigUrl =
       'LOCAL'; // Si LOCAL, utilise assets/sample_data/config.json

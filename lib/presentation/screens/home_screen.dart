@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:hive/hive.dart';
 import '../widgets/sidebar.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
@@ -10,6 +11,9 @@ import '../viewmodels/home_viewmodel.dart';
 import '../viewmodels/playlist_viewmodel.dart';
 import 'player_screen.dart';
 import 'settings_screen.dart';
+import 'vod_detail_screen.dart';
+import '../widgets/vod_card.dart';
+import '../../data/models/vod_content.dart';
 
 /// Écran d'accueil principal avec sidebar et carrousels
 class HomeScreen extends StatefulWidget {
@@ -26,19 +30,23 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final homeViewModel = Provider.of<HomeViewModel>(context);
     final playlistViewModel = Provider.of<PlaylistViewModel>(context);
+    final isSingleChannelMode = Hive.box(
+      'settings',
+    ).get('single_channel_mode', defaultValue: false);
 
     return Scaffold(
       body: Row(
         children: [
-          // Sidebar Navigation
-          Sidebar(
-            selectedIndex: _selectedMenuIndex,
-            onMenuItemSelected: (index) {
-              setState(() {
-                _selectedMenuIndex = index;
-              });
-            },
-          ),
+          // Sidebar Navigation (Hidden in Single Channel Mode)
+          if (!isSingleChannelMode)
+            Sidebar(
+              selectedIndex: _selectedMenuIndex,
+              onMenuItemSelected: (index) {
+                setState(() {
+                  _selectedMenuIndex = index;
+                });
+              },
+            ),
 
           // Main Content
           Expanded(
@@ -57,11 +65,43 @@ class _HomeScreenState extends State<HomeScreen> {
                           color: AppColors.accentBlue,
                         ),
                       )
+                      : isSingleChannelMode
+                      ? _buildSingleChannelMode(homeViewModel)
                       : _buildContent(homeViewModel, playlistViewModel),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildSingleChannelMode(HomeViewModel homeViewModel) {
+    final channels = homeViewModel.popularChannels;
+    if (channels.isEmpty) {
+      return const Center(child: Text("Aucune chaîne disponible"));
+    }
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: _buildSectionHeader(
+            title: "Mode Verrouillage",
+            subtitle: "Appuyez longuement sur Retour pour quitter (Simulé)",
+          ),
+        ),
+        Expanded(
+          child: Center(
+            child: SizedBox(
+              width: 300,
+              child: _buildCarousel(
+                title: "Chaînes Autorisées",
+                channels: channels.take(1).toList(),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -76,9 +116,9 @@ class _HomeScreenState extends State<HomeScreen> {
       case 1:
         return _buildLiveScreen(homeViewModel);
       case 2:
-        return _buildMoviesScreen();
+        return _buildMoviesScreen(homeViewModel);
       case 3:
-        return _buildSeriesScreen();
+        return _buildSeriesScreen(homeViewModel);
       case 4:
         return _buildFavoritesScreen(homeViewModel);
       case 5:
@@ -151,39 +191,115 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildMoviesScreen() {
-    return _buildComingSoon('Films', Icons.movie);
+  Widget _buildMoviesScreen(HomeViewModel homeViewModel) {
+    final movies =
+        homeViewModel.newMovies.where((v) => v.type == VODType.movie).toList();
+    return _buildVODCategory(homeViewModel, 'Films', movies);
   }
 
-  Widget _buildSeriesScreen() {
-    return _buildComingSoon('Séries', Icons.tv);
+  Widget _buildSeriesScreen(HomeViewModel homeViewModel) {
+    final series =
+        homeViewModel.newMovies.where((v) => v.type == VODType.series).toList();
+    if (series.isEmpty) {
+      // Simulate series if none found in movies logic
+      return _buildVODCategory(
+        homeViewModel,
+        'Séries',
+        homeViewModel.newMovies.take(5).toList(),
+      );
+    }
+    return _buildVODCategory(homeViewModel, 'Séries', series);
   }
 
-  Widget _buildComingSoon(String title, IconData icon) {
-    return Center(
+  Widget _buildVODCategory(
+    HomeViewModel homeViewModel,
+    String title,
+    List<VODContent> items,
+  ) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 64, color: AppColors.textTertiary),
-          const SizedBox(height: 16),
-          Text(
-            title,
-            style: Theme.of(
-              context,
-            ).textTheme.displayMedium?.copyWith(color: AppColors.textSecondary),
+          _buildSectionHeader(
+            title: title,
+            subtitle: '${items.length} titres disponibles',
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Fonction à venir...',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
+          const SizedBox(height: 24),
+          _buildVODCarousel(title: 'Nouveautés', items: items),
         ],
       ),
     );
   }
 
+  Widget _buildVODCarousel({
+    required String title,
+    required List<VODContent> items,
+  }) {
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 16),
+          child: Text(
+            title,
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontSize: 22),
+          ),
+        ),
+        SizedBox(
+          height: 250,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final movie = items[index];
+              return Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: Focus(
+                  onKeyEvent: (node, event) {
+                    if (event is KeyDownEvent) {
+                      final isSelect =
+                          event.logicalKey == LogicalKeyboardKey.select ||
+                          event.logicalKey == LogicalKeyboardKey.enter ||
+                          event.logicalKey == LogicalKeyboardKey.numpadEnter;
+                      if (isSelect) {
+                        _goToVODDetail(movie);
+                        return KeyEventResult.handled;
+                      }
+                    }
+                    return KeyEventResult.ignored;
+                  },
+                  child: Builder(
+                    builder: (context) {
+                      final hasFocus = Focus.of(context).hasFocus;
+                      return VODCard(
+                        movie: movie,
+                        hasFocus: hasFocus,
+                        onTap: () => _goToVODDetail(movie),
+                      );
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _goToVODDetail(VODContent movie) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => VODDetailScreen(movie: movie)),
+    );
+  }
+
   Widget _buildFavoritesScreen(HomeViewModel homeViewModel) {
-    // Note: favoritism logic needs to be added to ViewModel if not persistent in DB
     final favorites =
         homeViewModel.popularChannels.where((c) => c.isFavorite).toList();
 

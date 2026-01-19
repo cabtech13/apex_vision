@@ -12,6 +12,7 @@ import 'data/repositories/playlist_repository.dart';
 import 'data/services/playlist_service.dart';
 import 'presentation/viewmodels/playlist_viewmodel.dart';
 import 'presentation/viewmodels/home_viewmodel.dart';
+import 'data/repositories/tmdb_repository.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +42,7 @@ void main() async {
   // Initialiser les repositories
   final playlistRepository = await PlaylistRepository.init();
   final playlistService = PlaylistService();
+  final tmdbRepository = TMDBRepository();
 
   runApp(
     MultiProvider(
@@ -53,6 +55,7 @@ void main() async {
               (_) => HomeViewModel(
                 playlistRepository: playlistRepository,
                 playlistService: playlistService,
+                tmdbRepository: tmdbRepository,
               ),
         ),
       ],
