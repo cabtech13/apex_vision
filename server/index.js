@@ -6,10 +6,8 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Message de bienvenue pour éviter le "Cannot GET /"
-app.get('/', (req, res) => {
-    res.send('<h1>Apex Vision Pairing Server is Running</h1><p>API is available at /api/pairing/</p>');
-});
+// Servir les fichiers statiques de l'interface web
+app.use(express.static('public'));
 
 // Stockage en mémoire (Disparait au redémarrage, idéal pour du pairing temporaire)
 const pairingStore = new Map();
