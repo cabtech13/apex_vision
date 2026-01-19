@@ -8,7 +8,8 @@ class PairingService {
 
   // CONFIGURATION : Remplacez par l'URL de votre VPS une fois en ligne
   // Exemple: 'https://mon-vps-ip.com:3000/api/pairing'
-  final String _pairingBaseUrl = 'http://localhost:3000/api/pairing';
+  final String _pairingBaseUrl =
+      'https://apex-vision-server.onrender.com/api/pairing';
 
   /// Enregistre le code de pairing sur le serveur
   Future<bool> registerCode(String code, String deviceId) async {

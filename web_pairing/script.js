@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // CONFIGURATION : Remplacez par votre URL de serveur une fois en ligne
-    const SERVER_URL = 'http://localhost:3000';
+    const SERVER_URL = 'https://apex-vision-server.onrender.com';
 
     // Form Submission
     form.addEventListener('submit', async (e) => {
