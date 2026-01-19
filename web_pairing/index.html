@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apex Vision - Association Appareil</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-glow"></div>
+    <div class="container">
+        <header>
+            <div class="logo">APEX <span>VISION</span></div>
+            <h1>Associer votre TV</h1>
+            <p>Entrez le code affiché sur votre écran TV et vos informations IPTV.</p>
+        </header>
+
+        <main>
+            <form id="pairing-form">
+                <div class="input-group">
+                    <label for="pair-code">Code d'association (6 chiffres)</label>
+                    <input type="text" id="pair-code" placeholder="123 456" maxlength="6" pattern="\d{6}" required>
+                </div>
+
+                <div class="tabs">
+                    <button type="button" class="tab-btn active" data-type="m3u">M3U / M3U8</button>
+                    <button type="button" class="tab-btn" data-type="xtream">Xtream Codes</button>
+                </div>
+
+                <div id="m3u-fields" class="form-section">
+                    <div class="input-group">
+                        <label for="playlist-name">Nom de la playlist</label>
+                        <input type="text" id="playlist-name" placeholder="Ma Playlist TV">
+                    </div>
+                    <div class="input-group">
+                        <label for="m3u-url">URL de la playlist</label>
+                        <input type="url" id="m3u-url" placeholder="http://example.com/playlist.m3u">
+                    </div>
+                </div>
+
+                <div id="xtream-fields" class="form-section hidden">
+                    <div class="input-group">
+                        <label for="server-url">URL Serveur</label>
+                        <input type="url" id="server-url" placeholder="http://domain.com:8080">
+                    </div>
+                    <div class="input-group">
+                        <label for="username">Nom d'utilisateur</label>
+                        <input type="text" id="username" placeholder="votre_user">
+                    </div>
+                    <div class="input-group">
+                        <label for="password">Mot de passe</label>
+                        <input type="password" id="password" placeholder="••••••••">
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">Associer maintenant</button>
+            </form>
+        </main>
+
+        <div id="status-message" class="hidden">
+            <div class="spinner"></div>
+            <p>Association en cours...</p>
+        </div>
+
+        <div id="success-screen" class="hidden">
+            <div class="success-icon">✓</div>
+            <h2>Félicitations !</h2>
+            <p>Votre TV est maintenant associée. La playlist va s'afficher sur votre écran dans quelques instants.</p>
+            <button onclick="window.location.reload()" class="submit-btn secondary">Associer une autre TV</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
